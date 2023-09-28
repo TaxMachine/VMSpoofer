@@ -12,6 +12,12 @@
  */
 namespace Registry {
     /**
+     * Create a registry key
+     * @param subkey subkey to create
+     */
+    void CreateRegistryKey(const wchar_t* subkey);
+
+    /**
      * Write a string value to the registry
      * @param subkey subkey to write to
      * @param valueName key to write to

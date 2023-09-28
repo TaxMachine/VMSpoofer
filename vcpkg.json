@@ -1,0 +1,18 @@
+{
+  "name" : "hostvmspoofer",
+  "version-string" : "1.0.0",
+  "builtin-baseline" : "927bc12e31148b0d44ae9d174b96c20e3bcf08eb",
+  "dependencies" : [ {
+    "name" : "opengl",
+    "version>=" : "2022-12-04#3"
+  }, {
+    "name" : "glfw3",
+    "version>=" : "3.3.8#2"
+  }, {
+    "name" : "gl3w",
+    "version>=" : "2018-05-31#4"
+  }, {
+    "name" : "imgui",
+    "version>=" : "1.89.7#1"
+  } ]
+}

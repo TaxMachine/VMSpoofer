@@ -7,7 +7,23 @@
 #include <Windows.h>
 #include "RegistryException.hpp"
 
-// Write a string value
+void Registry::CreateRegistryKey(const wchar_t *subkey) {
+    HKEY hKey;
+    LONG result = RegCreateKeyEx(
+            HKEY_CURRENT_USER,
+            reinterpret_cast<LPCSTR>(subkey),
+            0,
+            nullptr,
+            REG_OPTION_NON_VOLATILE,
+            KEY_SET_VALUE,
+            nullptr,
+            &hKey,
+            nullptr);
+    if (result != ERROR_SUCCESS)
+        throw RegistryException("Could not create registry key", result);
+    RegCloseKey(hKey);
+}
+
 void Registry::WriteRegistryString(const wchar_t* subkey,
                          const wchar_t* valueName,
                          const wchar_t* value) {
@@ -105,4 +121,33 @@ DWORD Registry::ReadRegistryDWORD(const wchar_t* subkey,
         throw RegistryException("Could not read registry value", queryResult);
     RegCloseKey(hKey);
     return result;
+}
+
+void Registry::DeleteRegistryKey(const wchar_t* subkey) {
+    HKEY hKey;
+    LONG result = RegOpenKeyEx(
+            HKEY_CURRENT_USER,
+            reinterpret_cast<LPCSTR>(subkey),
+            0,
+            KEY_SET_VALUE,
+            &hKey);
+    if (result != ERROR_SUCCESS)
+        throw RegistryException("Could not open registry key", result);
+    result = RegDeleteKey(hKey, reinterpret_cast<LPCSTR>(subkey));
+    RegCloseKey(hKey);
+}
+
+void Registry::DeleteRegistryValue(const wchar_t* subkey,
+                         const wchar_t* valueName) {
+    HKEY hKey;
+    LONG result = RegOpenKeyEx(
+            HKEY_CURRENT_USER,
+            reinterpret_cast<LPCSTR>(subkey),
+            0,
+            KEY_SET_VALUE,
+            &hKey);
+    if (result != ERROR_SUCCESS)
+        throw RegistryException("Could not open registry key", result);
+    result = RegDeleteValue(hKey, reinterpret_cast<LPCSTR>(valueName));
+    RegCloseKey(hKey);
 }

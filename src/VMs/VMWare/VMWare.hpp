@@ -10,27 +10,24 @@
 
 
 static std::vector<std::string> REGKEYS = {
-        R"(SOFTWARE\VMware, Inc.\VMware Tools)"
+        R"(HKEY_LOCAL_MACHINE\SOFTWARE\VMware, Inc.\VMware Tools)"
 };
 
 static std::vector<std::string> FILES = {
-        R"(C:\WINDOWS\system32\drivers\vmmouse.sys)",
-        R"(C:\WINDOWS\system32\drivers\vmhgfs.sys)",
-        R"(C:\WINDOWS\system32\drivers\vmusbmouse.sys)",
-        R"(C:\WINDOWS\system32\drivers\vmkdb.sys)",
-        R"(C:\WINDOWS\system32\drivers\vmrawdsk.sys)",
-        R"(C:\WINDOWS\system32\drivers\vmmemctl.sys)",
-        R"(C:\WINDOWS\system32\drivers\vm3dmp.sys)"
+        R"(C:\Windows\system32\drivers\vmmouse.sys)",
+        R"(C:\Windows\system32\drivers\vmhgfs.sys)",
+        R"(C:\Windows\system32\drivers\vmusbmouse.sys)",
+        R"(C:\Windows\system32\drivers\vmkdb.sys)",
+        R"(C:\Windows\system32\drivers\vmrawdsk.sys)",
+        R"(C:\Windows\system32\drivers\vmmemctl.sys)",
+        R"(C:\Windows\system32\drivers\vm3dmp.sys)"
 };
 
 static std::vector<std::string> PROCESSES = {
         "vmtoolsd.exe",
         "xenservice.exe",
         "VMSrvc.exe",
-        "VMUSrvc.exe",
-        "qemu-ga.exe",
-        "prl_cc.exe",
-        "prl_tools.exe"
+        "VMUSrvc.exe"
 };
 
 static std::vector<std::string> NAMED_PIPES = {
@@ -46,7 +43,7 @@ namespace VMWare {
     /**
      * Patch the registry to spoof as VMWare
      */
-    void PatchRegistry();
+    void CreateFakeRegistryKeys();
 
     /**
      * Patch the files to spoof as VMWare
@@ -69,6 +66,31 @@ namespace VMWare {
     void CreateFakeServices();
 
 
+
+    /**
+     * Remove fake registry keys
+     */
+    void RemoveFakeRegistryKeys();
+
+    /**
+     * Remove fake files
+     */
+    void RemoveFakeFiles();
+
+    /**
+     * Remove fake processes
+     */
+    void RemoveFakeProcesses();
+
+    /**
+     * Remove fake named pipes
+     */
+    void RemoveFakeNamedPipes();
+
+    /**
+     * Remove fake services
+     */
+    void RemoveFakeServices();
 }
 
 #endif //HOSTVMSPOOFER_VMWARE_HPP

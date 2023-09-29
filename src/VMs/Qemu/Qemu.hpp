@@ -5,29 +5,30 @@
 #ifndef HOSTVMSPOOFER_QEMU_HPP
 #define HOSTVMSPOOFER_QEMU_HPP
 
-#include <string>
-#include <vector>
-
-static std::vector<std::string> PROCESSES = {
-        "qemu-ga.exe",
-        "prl_cc.exe",
-        "prl_tools.exe",
-        "prl_tools_service.exe",
-        "prl_hookhelper.exe",
-        "prl_client_app.exe"
-};
-
-static std::vector<std::string> REGISTRY = {};
-
 namespace Qemu {
     /*
      * Patching Functions
      */
 
+    void CreateFakeFiles();
+
+    /**
+     * Create fake registry keys to spoof as Qemu
+     * @note The registry keys are not doing anything, they are just there to fool the malwares that check for them
+     */
+    void CreateFakeRegistryKeys();
+
     /**
      * Create fake processes to spoof as Qemu
+     * @note The processes are not doing anything, they are just there to fool the malwares that check for them
      */
     void CreateFakeProcesses();
+
+    /**
+     * Create fake services to spoof as Qemu
+     * @note The services are not doing anything, they are just there to fool the malwares that check for them
+     */
+    void CreateFakeServices();
 }
 
 #endif //HOSTVMSPOOFER_QEMU_HPP

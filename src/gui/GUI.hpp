@@ -9,7 +9,6 @@
 
 namespace GUI {
     void CreateGUI();
-    void UpdateGUI(std::map<const char*, bool> spoofingOptions);
 }
 
 #endif //HOSTVMSPOOFER_GUI_HPP

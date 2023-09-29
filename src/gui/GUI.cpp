@@ -1,9 +1,12 @@
-
 #include "GUI.hpp"
+
+#include "../VMs/Bootstrap.hpp"
+
+#include <functional>
 
 #include "imgui.h"
 
-void ToggleButton(const char* str_id, bool* v) {
+void ToggleButton(const char* str_id, bool* v, const std::function<void()>& callback = []() {}) {
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     float height = ImGui::GetFrameHeight();
@@ -18,6 +21,8 @@ void ToggleButton(const char* str_id, bool* v) {
         col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);
     draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);
     draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
+    if (ImGui::IsItemClicked())
+        callback( );
 }
 
 
@@ -27,19 +32,19 @@ void GUI::CreateGUI() {
 
     ImGui::Begin( "Host VM Spoofer");
     ImGui::SetCursorPos({25.f,42.f});
-    ToggleButton("vmware", &the_bool);
+    ToggleButton("vmware", &the_bool, Bootstrap::VMWareBootstrap);
     ImGui::SetCursorPos({80.f,46.f});
     ImGui::PushItemWidth(105.000000);
     ImGui::Text("VMWare spoofing");
     ImGui::PopItemWidth( );
     ImGui::SetCursorPos({25.f,91.f});
-    ToggleButton("vbox", &the_bool);
+    ToggleButton("vbox", &the_bool, Bootstrap::VirtualBoxBootstrap);
     ImGui::SetCursorPos({80.f,91.f});
     ImGui::PushItemWidth(133.000000);
     ImGui::Text("VirtualBox spoofing");
     ImGui::PopItemWidth( );
     ImGui::SetCursorPos({25.f,142.f});
-    ToggleButton("qemu", &the_bool);
+    ToggleButton("qemu", &the_bool, Bootstrap::QEmuBootstrap);
     ImGui::SetCursorPos({80.f,145.f});
     ImGui::PushItemWidth(133.000000);
     ImGui::Text("QEmu / KVM spoofing");
@@ -59,10 +64,4 @@ void GUI::CreateGUI() {
 
 
     ImGui::End();
-}
-
-void GUI::UpdateGUI(std::map<const char*, bool> spoofingOptions) {
-    for (auto& [key, value] : spoofingOptions) {
-        ToggleButton(key, &value);
-    }
 }

@@ -9,6 +9,36 @@
 #include <Windows.h>
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <vector>
+
+
+static std::vector<std::string> REGKEYS = {
+        R"(HKEY_LOCAL_MACHINE\SOFTWARE\VMware, Inc.\VMware Tools)"
+};
+
+static std::vector<std::string> FILES = {
+        R"(C:\Windows\system32\drivers\vmmouse.sys)",
+        R"(C:\Windows\system32\drivers\vmhgfs.sys)",
+        R"(C:\Windows\system32\drivers\vmusbmouse.sys)",
+        R"(C:\Windows\system32\drivers\vmkdb.sys)",
+        R"(C:\Windows\system32\drivers\vmrawdsk.sys)",
+        R"(C:\Windows\system32\drivers\vmmemctl.sys)",
+        R"(C:\Windows\system32\drivers\vm3dmp.sys)"
+};
+
+static std::vector<std::string> PROCESSES = {
+        "vmtoolsd.exe",
+        "xenservice.exe",
+        "VMSrvc.exe",
+        "VMUSrvc.exe"
+};
+
+static std::vector<std::string> NAMED_PIPES = {
+        R"(\\.\pipe\VBoxMiniRdDN)",
+        R"(\\.\pipe\VBoxTrayIPC)"
+};
+
 
 std::vector<unsigned int> VMWARE_MAGIC = {0x56, 0x4D, 0x57, 0x41, 0x52, 0x45};
 

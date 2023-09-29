@@ -1,0 +1,8 @@
+//
+// Created by TaxMachine on 2023-09-28.
+//
+
+#ifndef HOSTVMSPOOFER_VSPHERE_HPP
+#define HOSTVMSPOOFER_VSPHERE_HPP
+
+#endif //HOSTVMSPOOFER_VSPHERE_HPP

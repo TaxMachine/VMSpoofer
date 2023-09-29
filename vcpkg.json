@@ -9,10 +9,7 @@
     "name" : "glfw3",
     "version>=" : "3.3.8#2"
   }, {
-    "name" : "gl3w",
-    "version>=" : "2018-05-31#4"
-  }, {
-    "name" : "imgui",
-    "version>=" : "1.89.9"
+    "name" : "glew",
+    "version>=" : "2.2.0#3"
   } ]
 }

@@ -8,17 +8,23 @@ set(CMAKE_CXX_FLAGS "-mwindows -Wl,--no-undefined -static-libgcc ${CMAKE_CXX_FLA
 file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/**)
 
 find_package(OpenGL REQUIRED)
-find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(GLEW CONFIG REQUIRED)
 
-add_executable(HostVMSpoofer ${SOURCES})
-
-target_include_directories(HostVMSpoofer PRIVATE
-        ${OPENGL_INCLUDE_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}
+file(GLOB_RECURSE IMGUI_SOURCES
+        ${SOURCE_DIR}/imgui/*.cpp
+        ${SOURCE_DIR}/imgui/*.h
+        ${SOURCE_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+        ${SOURCE_DIR}/imgui/backends/imgui_impl_opengl3.h
 )
+
+include_directories(${SOURCE_DIR}/imgui)
+
+add_executable(HostVMSpoofer ${SOURCES} ${IMGUI_SOURCES})
+
 target_link_libraries(HostVMSpoofer PRIVATE
-        ${OPENGL_LIBRARIES}
+        opengl32
         glfw
-        imgui::imgui
+        GLEW::GLEW
+        imm32
 )

@@ -7,6 +7,11 @@
 #include <string>
 #include <vector>
 
+#include "../../utils/windows/winutils.hpp"
+#include "../../utils/registry/Registry.hpp"
+#include "../../utils/registry/RegistryException.hpp"
+#include "../../utils/common/logging.hpp"
+
 
 static std::vector<std::string> REGKEYS = {
         R"(SOFTWARE\Oracle\VirtualBox Guest Additions)",
@@ -65,3 +70,75 @@ static std::vector<std::string> PROCESSES = {
         "vboxtray.exe",
         "vboxcontrol.exe"
 };
+
+static std::vector<std::string> NAMED_PIPES = {
+        R"(\\.\pipe\VBoxMiniRdDN)",
+        R"(\\.\pipe\VBoxTrayIPC)"
+};
+
+static std::vector<std::string> SERVICES = {
+        "VBoxGuest",
+        "VBoxMouse",
+        "VBoxService",
+        "VBoxSF",
+        "VBoxVideo"
+};
+
+void VirtualBox::CreateFakeFiles() {
+    for (const auto& file : FILENAMES) {
+        try {
+            WinUtils::WriteFile(file, "VIRTUALBOX FAKE FILE");
+            Logs::Success(("Created file: " + file).c_str());
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::CreateFakeRegistryKeys() {
+    for (const auto& key : REGKEYS) {
+        try {
+            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
+            Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"VIRTUALBOX FAKE REGISTRY KEY",
+                                          L"VIRTUALBOX FAKE REGISTRY VALUE", hkey);
+            Logs::Success(("Created registry key: " + key).c_str());
+        } catch (RegistryException& e) {
+            Logs::Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::CreateFakeProcesses() {
+    for (const auto& process : PROCESSES) {
+        try {
+            WinUtils::SpawnFakeProcess(process);
+            Logs::Success(("Created process: " + process).c_str());
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::CreateFakeNamedPipes() {
+    for (const auto& pipe : NAMED_PIPES) {
+        try {
+            WinUtils::SpawnNamedPipe(pipe);
+            Logs::Success(("Created named pipe: " + pipe).c_str());
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::CreateFakeServices() {
+    for (const auto& service : SERVICES) {
+        try {
+            WinUtils::CreateFakeService(service);
+            Logs::Success(("Created service: " + service).c_str());
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
+        }
+    }
+}
+

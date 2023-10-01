@@ -6,6 +6,7 @@
 
 #include <windows.h>
 #include <stdexcept>
+#include <filesystem>
 
 bool Admin::isAdmin() {
     BOOL fIsRunAsAdmin = FALSE;
@@ -48,4 +49,12 @@ bool Admin::isAdmin() {
     }
 
     return fIsRunAsAdmin;
+}
+
+void Admin::createConfigFolder() {
+    std::string directory = getenv("USERPROFILE") + std::string("\\.hostvm");
+    std::filesystem::create_directories(directory);
+    std::filesystem::create_directory(directory + "\\processes");
+    std::filesystem::create_directory(directory + "\\services");
+    std::filesystem::create_directory(directory + "\\namedpipes");
 }

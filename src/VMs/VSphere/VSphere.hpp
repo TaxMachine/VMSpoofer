@@ -5,35 +5,20 @@
 #ifndef HOSTVMSPOOFER_VSPHERE_HPP
 #define HOSTVMSPOOFER_VSPHERE_HPP
 
-namespace VSphere {
-    /*
-     * Patching Functions
-     */
+#include "../VM.hpp"
 
-    /**
-     * Patch the registry to spoof as VSphere
-     */
-    void CreateFakeRegistryKeys();
+class VSphere : public VM {
+    public:
+        VSphere() = default;
 
-    /**
-     * Patch the files to spoof as VSphere
-     */
-    void CreateFakeFiles();
+        const char* GetName() override { return "VSphere"; }
+        void CreateFakeFiles() override;
+        void CreateFakeRegistryKeys() override;
+        void CreateFakeProcesses() override;
+        void CreateFakeNamedPipes() override;
+        void CreateFakeServices() override;
 
-    /**
-     * Create fake processes to spoof as VSphere
-     */
-    void CreateFakeProcesses();
-
-    /**
-     * Create fake named pipes to spoof as VSphere
-     */
-    void CreateFakeNamedPipes();
-
-    /**
-     * Create fake services to spoof as VSphere
-     */
-    void CreateFakeServices();
-}
+        ~VSphere() override = default;
+};
 
 #endif //HOSTVMSPOOFER_VSPHERE_HPP

@@ -1,5 +1,7 @@
 #include "GUI.hpp"
 
+#ifdef USING_GUI
+
 #include "../VMs/Bootstrap.hpp"
 
 #include <functional>
@@ -65,3 +67,5 @@ void GUI::CreateGUI() {
 
     ImGui::End();
 }
+
+#endif

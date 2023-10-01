@@ -5,30 +5,20 @@
 #ifndef HOSTVMSPOOFER_VIRTUALBOX_HPP
 #define HOSTVMSPOOFER_VIRTUALBOX_HPP
 
-namespace VirtualBox {
-    /**
-     * Creates fake files from the virtualbox guest additions
-     * @note The files are empty, they are just there to fool the malwares that check for them
-     */
-    void CreateFakeFiles();
+#include "../VM.hpp"
 
-    /**
-     * Creates fake registry keys from virtualbox virtual machines
-     * @note The registry keys are not doing anything, they are just there to fool the malwares that check for them
-     */
-    void CreateFakeRegistryKeys();
+class VirtualBox : public VM {
+    public:
+        VirtualBox() = default;
 
-    /**
-     * Creates fake processes from virtualbox virtual machines
-     * @note The processes are not doing anything, they are just there to fool the malwares that check for them
-     */
-    void CreateFakeProcesses();
+        const char* GetName() override { return "VirtualBox"; }
+        void CreateFakeFiles() override;
+        void CreateFakeRegistryKeys() override;
+        void CreateFakeProcesses() override;
+        void CreateFakeNamedPipes() override;
+        void CreateFakeServices() override;
 
-    /**
-     * Creates fake services from virtualbox virtual machines
-     * @note The services are not doing anything, they are just there to fool the malwares that check for them
-     */
-    void CreateFakeServices();
-}
+        ~VirtualBox() override = default;
+};
 
 #endif //HOSTVMSPOOFER_VIRTUALBOX_HPP

@@ -5,30 +5,20 @@
 #ifndef HOSTVMSPOOFER_QEMU_HPP
 #define HOSTVMSPOOFER_QEMU_HPP
 
-namespace Qemu {
-    /*
-     * Patching Functions
-     */
+#include "../VM.hpp"
 
-    void CreateFakeFiles();
+class Qemu : public VM {
+    public:
+        Qemu() = default;
 
-    /**
-     * Create fake registry keys to spoof as Qemu
-     * @note The registry keys are not doing anything, they are just there to fool the malwares that check for them
-     */
-    void CreateFakeRegistryKeys();
+        const char* GetName() override { return "Qemu"; }
+        void CreateFakeFiles() override;
+        void CreateFakeRegistryKeys() override;
+        void CreateFakeProcesses() override;
+        void CreateFakeNamedPipes() override;
+        void CreateFakeServices() override;
 
-    /**
-     * Create fake processes to spoof as Qemu
-     * @note The processes are not doing anything, they are just there to fool the malwares that check for them
-     */
-    void CreateFakeProcesses();
-
-    /**
-     * Create fake services to spoof as Qemu
-     * @note The services are not doing anything, they are just there to fool the malwares that check for them
-     */
-    void CreateFakeServices();
-}
+        ~Qemu() override = default;
+};
 
 #endif //HOSTVMSPOOFER_QEMU_HPP

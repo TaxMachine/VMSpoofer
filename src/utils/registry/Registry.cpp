@@ -5,12 +5,24 @@
 #include "Registry.hpp"
 
 #include <Windows.h>
+#include <string>
+
 #include "RegistryException.hpp"
 
-void Registry::CreateRegistryKey(const wchar_t *subkey) {
+HKEY Registry::GetHKeyFromString(const char *hkey) {
+    std::string hkeyString = std::string{hkey};
+    return hkeyString.starts_with("HKLM") ? HKEY_LOCAL_MACHINE
+        : hkeyString.starts_with("HKCU") ? HKEY_CURRENT_USER
+        : hkeyString.starts_with("HKCR") ? HKEY_CLASSES_ROOT
+        : hkeyString.starts_with("HKU") ? HKEY_USERS
+        : hkeyString.starts_with("HKCC") ? HKEY_CURRENT_CONFIG
+        : throw RegistryException("Invalid registry key", 0);
+}
+
+void Registry::CreateRegistryKey(const wchar_t *subkey, HKEY hkey) {
     HKEY hKey;
     LONG result = RegCreateKeyEx(
-            HKEY_CURRENT_USER,
+            hkey,
             reinterpret_cast<LPCSTR>(subkey),
             0,
             nullptr,
@@ -26,10 +38,11 @@ void Registry::CreateRegistryKey(const wchar_t *subkey) {
 
 void Registry::WriteRegistryString(const wchar_t* subkey,
                          const wchar_t* valueName,
-                         const wchar_t* value) {
+                         const wchar_t* value,
+                         HKEY hkey) {
     HKEY hKey;
     LONG result = RegOpenKeyEx(
-            HKEY_CURRENT_USER,
+            hkey,
             reinterpret_cast<LPCSTR>(subkey),
             0,
             KEY_SET_VALUE,
@@ -49,10 +62,11 @@ void Registry::WriteRegistryString(const wchar_t* subkey,
 // Read a string value
 void Registry::ReadRegistryString(const wchar_t* subkey,
                         const wchar_t* valueName,
-                        wchar_t*value, DWORD size) {
+                        wchar_t*value, DWORD size,
+                        HKEY hkey) {
     HKEY hKey;
     LONG result = RegOpenKeyEx(
-            HKEY_CURRENT_USER,
+            hkey,
             reinterpret_cast<LPCSTR>(subkey),
             0,
             KEY_QUERY_VALUE,
@@ -74,10 +88,10 @@ void Registry::ReadRegistryString(const wchar_t* subkey,
 // Write a DWORD value
 void Registry::WriteRegistryDWORD(const wchar_t* subkey,
                         const wchar_t* valueName,
-                        DWORD value) {
+                        DWORD value, HKEY hkey) {
     HKEY hKey;
     LONG result = RegOpenKeyEx(
-            HKEY_CURRENT_USER,
+            hkey,
             reinterpret_cast<LPCSTR>(subkey),
             0,
             KEY_SET_VALUE,
@@ -96,11 +110,11 @@ void Registry::WriteRegistryDWORD(const wchar_t* subkey,
 
 // Read a DWORD value
 DWORD Registry::ReadRegistryDWORD(const wchar_t* subkey,
-                        const wchar_t* valueName) {
+                        const wchar_t* valueName, HKEY hkey) {
     HKEY hKey;
     DWORD result;
     LONG openResult = RegOpenKeyEx(
-            HKEY_CURRENT_USER,
+            hkey,
             reinterpret_cast<LPCSTR>(subkey),
             0,
             KEY_QUERY_VALUE,
@@ -123,10 +137,10 @@ DWORD Registry::ReadRegistryDWORD(const wchar_t* subkey,
     return result;
 }
 
-void Registry::DeleteRegistryKey(const wchar_t* subkey) {
+void Registry::DeleteRegistryKey(const wchar_t* subkey, HKEY hkey) {
     HKEY hKey;
     LONG result = RegOpenKeyEx(
-            HKEY_CURRENT_USER,
+            hkey,
             reinterpret_cast<LPCSTR>(subkey),
             0,
             KEY_SET_VALUE,
@@ -138,10 +152,10 @@ void Registry::DeleteRegistryKey(const wchar_t* subkey) {
 }
 
 void Registry::DeleteRegistryValue(const wchar_t* subkey,
-                         const wchar_t* valueName) {
+                         const wchar_t* valueName, HKEY hkey) {
     HKEY hKey;
     LONG result = RegOpenKeyEx(
-            HKEY_CURRENT_USER,
+            HKEY_LOCAL_MACHINE,
             reinterpret_cast<LPCSTR>(subkey),
             0,
             KEY_SET_VALUE,

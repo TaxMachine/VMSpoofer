@@ -7,6 +7,7 @@
 
 namespace Admin {
     bool isAdmin();
+    void createConfigFolder();
 }
 
 #endif //HOSTVMSPOOFER_ADMIN_HPP

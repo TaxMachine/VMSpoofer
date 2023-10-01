@@ -5,10 +5,11 @@
 #include "VMWare.hpp"
 
 #include "../../utils/registry/Registry.hpp"
+#include "../../utils/windows/winutils.hpp"
+#include "../../utils/common/logging.hpp"
+#include "../../utils/registry/RegistryException.hpp"
 
 #include <Windows.h>
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
 
@@ -39,45 +40,75 @@ static std::vector<std::string> NAMED_PIPES = {
         R"(\\.\pipe\VBoxTrayIPC)"
 };
 
-
-std::vector<unsigned int> VMWARE_MAGIC = {0x56, 0x4D, 0x57, 0x41, 0x52, 0x45};
-
+static std::vector<std::string> SERVICES = {
+        "VMTools",
+        "VMware Physical Disk Helper Service",
+        "VMware Snapshot Provider",
+        "VMware Tools",
+        "VMware User Process",
+        "VMware VGAuth",
+        "VMwareHostd",
+        "VMwareHostdUser",
+        "VMwareNatService",
+        "VMwarePhysicalDisk",
+        "VMwareVMAFD",
+        "VMwareVCMSDS",
+        "VMwareVpxdVmdir",
+        "VMwareVsanHealthSvc",
+        "VMwareVsanVmkctlHost",
+        "VMwareVsanVmkctlVsanet",
+        "VMwareVsanvp"
+};
 
 void VMWare::CreateFakeFiles() {
     for (const auto& file : FILES) {
-        std::cout << "Creating file: " << file << std::endl;
-        std::ofstream fileStream(file, std::ios::out | std::ios::binary | std::ios::app);
-        if (!fileStream.is_open()) {
-            std::cout << "Failed to open file: " << file << std::endl;
-            std::cout << fileStream.exceptions() << std::endl;
-            continue;
-        }
-        for (const auto& magic : VMWARE_MAGIC) {
-            fileStream << magic;
-        }
-        fileStream.close();
-    }
-}
-
-void VMWare::RemoveFakeFiles() {
-    for (const auto& file : FILES) {
-        std::cout << "Removing file: " << file << std::endl;
-        if (!DeleteFile((LPCSTR) file.c_str())) {
-            std::cout << "Failed to remove file: " << file << std::endl;
+        try {
+            WinUtils::WriteFile(file, "VMWARE SPOOFING");
+            Logs::Success(("Created file: " + file).c_str());
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
         }
     }
 }
 
 void VMWare::CreateFakeRegistryKeys() {
     for (const auto& key : REGKEYS) {
-        std::cout << "Creating registry key: " << key << std::endl;
-        Registry::CreateRegistryKey((const wchar_t *) key.c_str());
+        try {
+            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
+            Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"VMWARE SPOOFING", L"VMWARE SPOOFING", hkey);
+        } catch (RegistryException& e) {
+            Logs::Error(e.what());
+        }
     }
 }
 
-void VMWare::RemoveFakeRegistryKeys() {
-    for (const auto& key : REGKEYS) {
-        std::cout << "Removing registry key: " << key << std::endl;
-        Registry::DeleteRegistryKey((const wchar_t *) key.c_str());
+void VMWare::CreateFakeProcesses() {
+    for (const auto& process : PROCESSES) {
+        try {
+            WinUtils::SpawnFakeProcess(process);
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
+        }
+    }
+}
+
+void VMWare::CreateFakeNamedPipes() {
+    for (const auto& pipe : NAMED_PIPES) {
+        try {
+            WinUtils::SpawnNamedPipe(pipe);
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
+        }
+    }
+}
+
+void VMWare::CreateFakeServices() {
+    for (const auto& service : SERVICES) {
+        try {
+            WinUtils::CreateFakeService(service);
+        } catch (std::exception& e) {
+            Logs::Error(e.what());
+        }
     }
 }

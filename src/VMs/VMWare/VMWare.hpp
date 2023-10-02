@@ -18,6 +18,12 @@ class VMWare : public VM {
         void CreateFakeNamedPipes() override;
         void CreateFakeServices() override;
 
+        void DeleteFakeFiles() override;
+        void DeleteFakeRegistryKeys() override;
+        void KillFakeProcesses() override;
+        void DeleteFakeNamedPipes() override;
+        void DeleteFakeServices() override;
+
         ~VMWare() override = default;
 };
 

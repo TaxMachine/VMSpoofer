@@ -16,7 +16,14 @@ class VM {
         virtual void CreateFakeNamedPipes() = 0;
         virtual void CreateFakeServices() = 0;
 
+        virtual void DeleteFakeFiles() = 0;
+        virtual void DeleteFakeRegistryKeys() = 0;
+        virtual void KillFakeProcesses() = 0;
+        virtual void DeleteFakeNamedPipes() = 0;
+        virtual void DeleteFakeServices() = 0;
+
         virtual ~VM() = default;
+
 };
 
 #endif //HOSTVMSPOOFER_VM_HPP

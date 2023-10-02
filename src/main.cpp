@@ -7,17 +7,18 @@
 #ifdef USING_GUI
     #include "gui/GUI.hpp"
 #else
-    #include <iostream>
-    #include "VMs/VMManager.hpp"
     #include "GUI/CLI.hpp"
     #include "utils/common/logging.hpp"
 #endif
 
+static Logger LOGGER("main");
+
 int main() {
     if (!Admin::isAdmin()) {
-        Logs::Error("You need to run this program as administrator!");
+        LOGGER.Error("You need to run this program as administrator!");
         return 1;
     }
+    Admin::createConfigFolder();
 #ifdef USING_GUI
     GUI::CreateGUI();
 #else

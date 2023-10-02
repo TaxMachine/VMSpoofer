@@ -32,6 +32,24 @@ namespace WinUtils {
      * @param name The name of the named pipe
      */
     void SpawnNamedPipe(const std::string& name);
+
+    /**
+     * Kill a process with the specified name
+     * @param name The name of the process
+     */
+    void KillProcess(const std::string& name);
+
+    /**
+     * Disonnect a named pipe with the specified name
+     * @param name The name of the named pipe
+     */
+    void KillNamedPipe(const std::string& name);
+
+    /**
+     * Kill a service with the specified name
+     * @param name The name of the service
+     */
+    void KillFakeService(const std::string& name);
 }
 
 #endif //HOSTVMSPOOFER_WINUTILS_HPP

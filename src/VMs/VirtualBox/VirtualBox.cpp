@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "../../utils/windows/winutils.hpp"
 #include "../../utils/registry/Registry.hpp"
@@ -84,13 +85,15 @@ static std::vector<std::string> SERVICES = {
         "VBoxVideo"
 };
 
+static Logger LOGGER = Logger(typeid(VirtualBox).name());
+
 void VirtualBox::CreateFakeFiles() {
     for (const auto& file : FILENAMES) {
         try {
             WinUtils::WriteFile(file, "VIRTUALBOX FAKE FILE");
-            Logs::Success(("Created file: " + file).c_str());
+            LOGGER.Success(("Created file: " + file).c_str());
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -102,9 +105,9 @@ void VirtualBox::CreateFakeRegistryKeys() {
             Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
             Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"VIRTUALBOX FAKE REGISTRY KEY",
                                           L"VIRTUALBOX FAKE REGISTRY VALUE", hkey);
-            Logs::Success(("Created registry key: " + key).c_str());
+            LOGGER.Success(("Created registry key: " + key).c_str());
         } catch (RegistryException& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -113,9 +116,9 @@ void VirtualBox::CreateFakeProcesses() {
     for (const auto& process : PROCESSES) {
         try {
             WinUtils::SpawnFakeProcess(process);
-            Logs::Success(("Created process: " + process).c_str());
+            LOGGER.Success(("Created process: " + process).c_str());
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -124,9 +127,9 @@ void VirtualBox::CreateFakeNamedPipes() {
     for (const auto& pipe : NAMED_PIPES) {
         try {
             WinUtils::SpawnNamedPipe(pipe);
-            Logs::Success(("Created named pipe: " + pipe).c_str());
+            LOGGER.Success(("Created named pipe: " + pipe).c_str());
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -135,9 +138,65 @@ void VirtualBox::CreateFakeServices() {
     for (const auto& service : SERVICES) {
         try {
             WinUtils::CreateFakeService(service);
-            Logs::Success(("Created service: " + service).c_str());
+            LOGGER.Success(("Created service: " + service).c_str());
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::DeleteFakeFiles() {
+    for (const auto& file : FILENAMES) {
+        try {
+            std::filesystem::remove(file);
+            LOGGER.Success(("Deleted file: " + file).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::DeleteFakeRegistryKeys() {
+    for (const auto& key : REGKEYS) {
+        try {
+            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            Registry::DeleteRegistryKey((const wchar_t *) key.c_str(), hkey);
+            LOGGER.Success(("Deleted registry key: " + key).c_str());
+        } catch (RegistryException& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::KillFakeProcesses() {
+    for (const auto& process : PROCESSES) {
+        try {
+            WinUtils::KillProcess(process);
+            LOGGER.Success(("Killed process: " + process).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::DeleteFakeNamedPipes() {
+    for (const auto& pipe : NAMED_PIPES) {
+        try {
+            WinUtils::KillNamedPipe(pipe);
+            LOGGER.Success(("Deleted named pipe: " + pipe).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VirtualBox::DeleteFakeServices() {
+    for (const auto& service : SERVICES) {
+        try {
+            WinUtils::KillFakeService(service);
+            LOGGER.Success(("Deleted service: " + service).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
         }
     }
 }

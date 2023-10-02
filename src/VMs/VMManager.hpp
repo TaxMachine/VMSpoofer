@@ -15,13 +15,13 @@
 
 static std::vector<VM*> VMs;
 
-void Add(VM* vm) {
+static void Add(VM* vm) {
     for (auto& vm_ : VMs)
         if (vm_->GetName() == vm->GetName()) return;
     VMs.push_back(vm);
 }
 
-void initVMs() {
+static void initVMs() {
     Add(new Proxmox());
     Add(new VirtualBox());
     Add(new VMWare());

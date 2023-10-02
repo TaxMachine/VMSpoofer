@@ -5,15 +5,19 @@
 #ifndef HOSTVMSPOOFER_LOGGING_HPP
 #define HOSTVMSPOOFER_LOGGING_HPP
 
-namespace Logs {
-    void Success(const char *message);
+#include "../../VMs/VM.hpp"
 
-    void Error(const char *message);
+class Logger {
+    public:
+        explicit Logger(const char* clazz);
 
-    void Info(const char *message);
+        void Success(const char *message);
+        void Error(const char *message);
+        void Info(const char *message);
+        void Warning(const char *message);
+        void Debug(const char *message);
 
-    void Warning(const char *message);
-
-    void Debug(const char *message);
-}
+    private:
+        const char *classname;
+};
 #endif //HOSTVMSPOOFER_LOGGING_HPP

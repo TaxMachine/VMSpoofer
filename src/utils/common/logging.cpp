@@ -7,22 +7,36 @@
 #include <iostream>
 #include "colors.hpp"
 
-void Logs::Success(const char* message) {
-    std::cout << Colors(0, 255, 0).GetTerminal() << "[+] " << message << RESET << std::endl;
+Logger::Logger(const char* clazz) {
+    classname = clazz;
 }
 
-void Logs::Error(const char* message) {
-    std::cout << Colors(255, 0, 0).GetTerminal() << "[-] " << message << RESET << std::endl;
+void Logger::Success(const char* message) {
+    std::cout
+        << "<" << Colors(77, 71, 255).GetTerminal() << classname << RESET << "> "
+        << Colors(0, 255, 0).GetTerminal() << "[+] " << message << RESET << std::endl;
 }
 
-void Logs::Info(const char* message) {
-    std::cout << Colors(16, 53, 240).GetTerminal() << "[*] " << message << RESET << std::endl;
+void Logger::Error(const char* message) {
+    std::cout
+        << "<" << Colors(77, 71, 255).GetTerminal() << classname << RESET << "> "
+        << Colors(255, 0, 0).GetTerminal() << "[-] " << message << RESET << std::endl;
 }
 
-void Logs::Warning(const char* message) {
-    std::cout << Colors(255, 255, 0).GetTerminal() << "[!] " << message << RESET << std::endl;
+void Logger::Info(const char* message) {
+    std::cout
+        << "<" << Colors(77, 71, 255).GetTerminal() << classname << RESET << "> "
+        << Colors(16, 53, 240).GetTerminal() << "[*] " << message << RESET << std::endl;
 }
 
-void Logs::Debug(const char* message) {
-    std::cout << Colors(255, 255, 255).GetTerminal() << "[D] " << message << RESET << std::endl;
+void Logger::Warning(const char* message) {
+    std::cout
+        << "<" << Colors(77, 71, 255).GetTerminal() << classname << RESET << "> "
+        << Colors(255, 255, 0).GetTerminal() << "[!] " << message << RESET << std::endl;
+}
+
+void Logger::Debug(const char* message) {
+    std::cout
+        << "<" << Colors(77, 71, 255).GetTerminal() << classname << RESET << "> "
+        << Colors(255, 255, 255).GetTerminal() << "[D] " << message << RESET << std::endl;
 }

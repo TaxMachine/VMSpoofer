@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <filesystem>
 
+#include "winutils.hpp"
+
 bool Admin::isAdmin() {
     BOOL fIsRunAsAdmin = FALSE;
     DWORD dwError = ERROR_SUCCESS;
@@ -57,4 +59,6 @@ void Admin::createConfigFolder() {
     std::filesystem::create_directory(directory + "\\processes");
     std::filesystem::create_directory(directory + "\\services");
     std::filesystem::create_directory(directory + "\\namedpipes");
+    if (!std::filesystem::exists(directory + "\\config.ini"))
+        WinUtils::WriteFile(directory + "\\config.ini", "VMWare=false\nVirtualBox=false\nVSphere=false\nProxmox=false\nQemu=false\n");
 }

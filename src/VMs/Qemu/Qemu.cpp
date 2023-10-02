@@ -7,9 +7,12 @@
 #include <string>
 #include <vector>
 #include <windows.h>
+#include <filesystem>
 
 #include "../../utils/registry/Registry.hpp"
 #include "../../utils/windows/winutils.hpp"
+#include "../../utils/common/logging.hpp"
+#include "../../utils/registry/RegistryException.hpp"
 
 static std::vector<std::string> PROCESSES = {
         "qemu-ga.exe",
@@ -69,35 +72,115 @@ static std::vector<std::string> SERVICES = {
 
 };
 
+static Logger LOGGER = Logger(typeid(Qemu).name());
 
 void Qemu::CreateFakeFiles() {
     for (const auto& file : FILES) {
-        WinUtils::WriteFile(file, "QEMU FAKE FILE");
+        try {
+            WinUtils::WriteFile(file, "QEMU FAKE FILE");
+            LOGGER.Success(("Created file: " + file).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
     }
 }
 
 void Qemu::CreateFakeRegistryKeys() {
     for (const auto& key : REGISTRY) {
-        HKEY hkey = key.starts_with("HKLM") ? HKEY_LOCAL_MACHINE : HKEY_CURRENT_USER;
-        Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
-        Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"QEMU FAKE REGISTRY KEY", L"QEMU FAKE REGISTRY VALUE", hkey);
+        try {
+            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
+            Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"QEMU FAKE REGISTRY KEY",
+                                          L"QEMU FAKE REGISTRY VALUE", hkey);
+        } catch (RegistryException& e) {
+            LOGGER.Error(e.what());
+        }
     }
 }
 
 void Qemu::CreateFakeProcesses() {
     for (const auto& process : PROCESSES) {
-        WinUtils::SpawnFakeProcess(process);
+        try {
+            WinUtils::SpawnFakeProcess(process);
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
     }
 }
 
 void Qemu::CreateFakeServices() {
     for (const auto& service : SERVICES) {
-        WinUtils::CreateFakeService(service);
+        try {
+            WinUtils::CreateFakeService(service);
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
     }
 }
 
 void Qemu::CreateFakeNamedPipes() {
     for (const auto& pipe : NAMED_PIPE) {
+        try {
+            WinUtils::SpawnNamedPipe(pipe);
+            LOGGER.Success(("Created named pipe: " + pipe).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
 
+void Qemu::DeleteFakeFiles() {
+    for (const auto& file : FILES) {
+        try {
+            std::filesystem::remove(file);
+            LOGGER.Success(("Deleted file: " + file).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void Qemu::DeleteFakeRegistryKeys() {
+    for (const auto& key : REGISTRY) {
+        try {
+            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            Registry::DeleteRegistryKey((const wchar_t *) key.c_str(), hkey);
+            LOGGER.Success(("Deleted registry key: " + key).c_str());
+        } catch (RegistryException& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void Qemu::KillFakeProcesses() {
+    for (const auto& process : PROCESSES) {
+        try {
+            WinUtils::KillProcess(process);
+            LOGGER.Success(("Killed process: " + process).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void Qemu::DeleteFakeNamedPipes() {
+    for (const auto& pipe : NAMED_PIPE) {
+        try {
+            WinUtils::KillNamedPipe(pipe);
+            LOGGER.Success(("Deleted named pipe: " + pipe).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void Qemu::DeleteFakeServices() {
+    for (const auto& service : SERVICES) {
+        try {
+            WinUtils::KillFakeService(service);
+            LOGGER.Success(("Deleted service: " + service).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
     }
 }

@@ -4,15 +4,14 @@
 
 #include "VMWare.hpp"
 
+#include <filesystem>
+#include <string>
+#include <vector>
+
 #include "../../utils/registry/Registry.hpp"
 #include "../../utils/windows/winutils.hpp"
 #include "../../utils/common/logging.hpp"
 #include "../../utils/registry/RegistryException.hpp"
-
-#include <Windows.h>
-#include <string>
-#include <vector>
-
 
 static std::vector<std::string> REGKEYS = {
         R"(HKEY_LOCAL_MACHINE\SOFTWARE\VMware, Inc.\VMware Tools)"
@@ -60,13 +59,15 @@ static std::vector<std::string> SERVICES = {
         "VMwareVsanvp"
 };
 
+static Logger LOGGER = Logger(typeid(VMWare).name());
+
 void VMWare::CreateFakeFiles() {
     for (const auto& file : FILES) {
         try {
             WinUtils::WriteFile(file, "VMWARE SPOOFING");
-            Logs::Success(("Created file: " + file).c_str());
+            LOGGER.Success(("Created file: " + file).c_str());
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -78,7 +79,7 @@ void VMWare::CreateFakeRegistryKeys() {
             Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
             Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"VMWARE SPOOFING", L"VMWARE SPOOFING", hkey);
         } catch (RegistryException& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -88,7 +89,7 @@ void VMWare::CreateFakeProcesses() {
         try {
             WinUtils::SpawnFakeProcess(process);
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -98,7 +99,7 @@ void VMWare::CreateFakeNamedPipes() {
         try {
             WinUtils::SpawnNamedPipe(pipe);
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
         }
     }
 }
@@ -108,7 +109,63 @@ void VMWare::CreateFakeServices() {
         try {
             WinUtils::CreateFakeService(service);
         } catch (std::exception& e) {
-            Logs::Error(e.what());
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VMWare::DeleteFakeFiles() {
+    for (const auto& file : FILES) {
+        try {
+            std::filesystem::remove(file);
+            LOGGER.Success(("Deleted file: " + file).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VMWare::DeleteFakeRegistryKeys() {
+    for (const auto& key : REGKEYS) {
+        try {
+            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            Registry::DeleteRegistryKey((const wchar_t *) key.c_str(), hkey);
+            LOGGER.Success(("Deleted registry key: " + key).c_str());
+        } catch (RegistryException& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VMWare::KillFakeProcesses() {
+    for (const auto& process : PROCESSES) {
+        try {
+            WinUtils::KillProcess(process);
+            LOGGER.Success(("Killed process: " + process).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VMWare::DeleteFakeNamedPipes() {
+    for (const auto& pipe : NAMED_PIPES) {
+        try {
+            WinUtils::KillNamedPipe(pipe);
+            LOGGER.Success(("Deleted named pipe: " + pipe).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
+        }
+    }
+}
+
+void VMWare::DeleteFakeServices() {
+    for (const auto& service : SERVICES) {
+        try {
+            WinUtils::KillFakeService(service);
+            LOGGER.Success(("Deleted service: " + service).c_str());
+        } catch (std::exception& e) {
+            LOGGER.Error(e.what());
         }
     }
 }

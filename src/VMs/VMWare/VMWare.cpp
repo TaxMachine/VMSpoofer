@@ -7,14 +7,17 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <map>
+#include <thread>
 
 #include "../../utils/registry/Registry.hpp"
 #include "../../utils/windows/winutils.hpp"
 #include "../../utils/common/logging.hpp"
 #include "../../utils/registry/RegistryException.hpp"
+#include "../../utils/common/parser.hpp"
 
-static std::vector<std::string> REGKEYS = {
-        R"(HKEY_LOCAL_MACHINE\SOFTWARE\VMware, Inc.\VMware Tools)"
+static std::map<std::string, std::string> REGKEYS = {
+        {"HKLM", R"(SOFTWARE\VMware, Inc.\VMware Tools)"}
 };
 
 static std::vector<std::string> FILES = {
@@ -29,15 +32,11 @@ static std::vector<std::string> FILES = {
 
 static std::vector<std::string> PROCESSES = {
         "vmtoolsd.exe",
-        "xenservice.exe",
         "VMSrvc.exe",
         "VMUSrvc.exe"
 };
 
-static std::vector<std::string> NAMED_PIPES = {
-        R"(\\.\pipe\VBoxMiniRdDN)",
-        R"(\\.\pipe\VBoxTrayIPC)"
-};
+static std::vector<std::string> NAMED_PIPES = {};
 
 static std::vector<std::string> SERVICES = {
         "VMTools",
@@ -73,11 +72,12 @@ void VMWare::CreateFakeFiles() {
 }
 
 void VMWare::CreateFakeRegistryKeys() {
-    for (const auto& key : REGKEYS) {
+    for (const auto& [regnamespace, key] : REGKEYS) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
             Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"VMWARE SPOOFING", L"VMWARE SPOOFING", hkey);
+            LOGGER.Success(("Created registry key: " + key).c_str());
         } catch (RegistryException& e) {
             LOGGER.Error(e.what());
         }
@@ -88,6 +88,7 @@ void VMWare::CreateFakeProcesses() {
     for (const auto& process : PROCESSES) {
         try {
             WinUtils::SpawnFakeProcess(process);
+            LOGGER.Success(("Created process: " + process).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
         }
@@ -97,7 +98,8 @@ void VMWare::CreateFakeProcesses() {
 void VMWare::CreateFakeNamedPipes() {
     for (const auto& pipe : NAMED_PIPES) {
         try {
-            WinUtils::SpawnNamedPipe(pipe);
+            WinUtils::SpawnNamedPipe(pipe, Parser::SplitString(pipe, '\\').back());
+            LOGGER.Success(("Created named pipe: " + pipe).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
         }
@@ -107,7 +109,9 @@ void VMWare::CreateFakeNamedPipes() {
 void VMWare::CreateFakeServices() {
     for (const auto& service : SERVICES) {
         try {
-            WinUtils::CreateFakeService(service);
+            std::thread service_t(WinUtils::CreateFakeService, service);
+            service_t.join();
+            LOGGER.Success(("Created service: " + service).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
         }
@@ -126,9 +130,9 @@ void VMWare::DeleteFakeFiles() {
 }
 
 void VMWare::DeleteFakeRegistryKeys() {
-    for (const auto& key : REGKEYS) {
+    for (const auto& [regnamespace, key] : REGKEYS) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::DeleteRegistryKey((const wchar_t *) key.c_str(), hkey);
             LOGGER.Success(("Deleted registry key: " + key).c_str());
         } catch (RegistryException& e) {

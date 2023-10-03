@@ -30,14 +30,14 @@ void CLI::CreateCLI() {
 
 void CLI::Choices() {
     initVMs();
-    std::map<std::string, std::string> config = Parser::GetConfig();
+    nlohmann::json config = Parser::GetConfig();
     int r = 147;
     for (int i = 0; i < VMs.size(); i++) {
         std::cout
             << "\t\t\t"
             << Colors(37, 240, 112).GetTerminal() << "[" << i << "] " << RESET
             << Colors(r, 67, 252).GetTerminal() << VMs[i]->GetName() << RESET;
-            config[VMs[i]->GetName()] == "true"
+            config[VMs[i]->GetName()].get<bool>()
                 ? std::cout << Colors(0, 255, 0).GetTerminal() << " [ ENABLED ]" << RESET
                 : std::cout << Colors(255, 0, 0).GetTerminal() << " [ DISABLED ]" << RESET;
             std::cout << std::endl;
@@ -54,12 +54,28 @@ void CLI::Choices() {
             << std::endl;
         return;
     }
-    VMs[choice]->CreateFakeFiles();
-    //VMs[choice]->CreateFakeRegistryKeys();
-    //VMs[choice]->CreateFakeProcesses();
-    //VMs[choice]->CreateFakeNamedPipes();
-    //VMs[choice]->CreateFakeServices();
-    std::cout << "\t\t"
-        << Colors(0, 255, 0).GetTerminal() << "Successfully spoofed as " << VMs[choice]->GetName() << RESET
-        << std::endl;
+    if (config[VMs[choice]->GetName()].get<bool>()) {
+        config[VMs[choice]->GetName()] = false;
+        Parser::SetConfig(config);
+        VMs[choice]->DeleteFakeFiles();
+        VMs[choice]->DeleteFakeRegistryKeys();
+        VMs[choice]->KillFakeProcesses();
+        //VMs[choice]->DeleteFakeNamedPipes();
+        VMs[choice]->DeleteFakeServices();
+        std::cout << "\t\t"
+                  << Colors(255, 0, 0).GetTerminal() << "Successfully unspoofed as " << VMs[choice]->GetName() << RESET
+                  << std::endl;
+    } else {
+        config[VMs[choice]->GetName()] = true;
+        Parser::SetConfig(config);
+        VMs[choice]->CreateFakeFiles();
+        VMs[choice]->CreateFakeRegistryKeys();
+        VMs[choice]->CreateFakeProcesses();
+        //VMs[choice]->CreateFakeNamedPipes();
+        VMs[choice]->CreateFakeServices();
+        std::cout << "\t\t"
+                  << Colors(0, 255, 0).GetTerminal() << "Successfully spoofed as " << VMs[choice]->GetName() << RESET
+                  << std::endl;
+    }
+    std::cout << std::endl;
 }

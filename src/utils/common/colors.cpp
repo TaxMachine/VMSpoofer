@@ -18,3 +18,11 @@ std::string Colors::GetTerminal() const {
             std::to_string(this->g) + ";" +
             std::to_string(this->b) + "m");
 }
+
+void Colors::Clear() {
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    system("clear");
+#else
+    system("cls");
+#endif
+}

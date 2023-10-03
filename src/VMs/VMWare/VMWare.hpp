@@ -11,7 +11,7 @@ class VMWare : public VM {
     public:
         VMWare() = default;
 
-        const char* GetName() override { return "VMware"; }
+        const char* GetName() override { return "VMWare"; }
         void CreateFakeFiles() override;
         void CreateFakeRegistryKeys() override;
         void CreateFakeProcesses() override;

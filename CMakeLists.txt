@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 project(HostVMSpoofer)
+project(Decoy)
 
 set(CMAKE_CXX_STANDARD 23)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -21,6 +22,8 @@ file(GLOB_RECURSE IMGUI_SOURCES
 include_directories(${SOURCE_DIR}/imgui)
 
 add_executable(HostVMSpoofer ${SOURCES} ${IMGUI_SOURCES})
+
+add_executable(Decoy decoy/main.c)
 
 target_link_libraries(HostVMSpoofer PRIVATE
         opengl32

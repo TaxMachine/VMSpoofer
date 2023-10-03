@@ -9,12 +9,14 @@
 #include <string>
 #include <map>
 
+#include "json.hpp"
+
 namespace Parser {
     std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
     std::vector<std::string> SplitString(const std::string& str, const char& delimiter);
 
-    std::map<std::string, std::string> ParseKeyValue(const std::string& str, const std::string& delimiter);
-    std::map<std::string, std::string> GetConfig();
+    nlohmann::json GetConfig();
+    void SetConfig(const nlohmann::json& config);
 }
 
 #endif //HOSTVMSPOOFER_PARSER_HPP

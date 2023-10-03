@@ -6,6 +6,8 @@
 
 #include <vector>
 #include <filesystem>
+#include <map>
+#include <thread>
 
 #include "../../utils/registry/Registry.hpp"
 #include "../../utils/registry/RegistryException.hpp"
@@ -14,23 +16,16 @@
 
 static std::vector<std::string> FILENAME = {};
 
-static std::vector<std::string> REGKEYS = {
-        R"(HKLM\SYSTEM\Setup\Upgrade\PnP\CurrentControlSet\Control\DeviceMigration\Devices\ACPI\QEMUVGID)",
+static std::map<std::string, std::string> REGKEYS = {
+        {"HKLM", R"(\SYSTEM\Setup\Upgrade\PnP\CurrentControlSet\Control\DeviceMigration\Devices\ACPI\QEMUVGID)"}
 };
 
 static std::vector<std::string> PROCESSES = {
-        "qm.exe",
-        "pveproxy.exe",
-        "pvedaemon.exe",
-        "pvestatd.exe",
-        "pvefw.exe",
-        "pve-ha-crm.exe",
-        "pve-ha-lrm.exe",
-        "pve-ha-lrm-mon.exe",
-        "pve-ha-crm-fence.exe",
-        "pve-ha-crm-pengine.exe",
-        "pve-ha-crm-stonith.exe",
-        "pve-ha-crm-stonith-ng.exe",
+        "qm.exe", "pveproxy.exe", "pvedaemon.exe",
+        "pvestatd.exe", "pvefw.exe", "pve-ha-crm.exe",
+        "pve-ha-lrm.exe", "pve-ha-lrm-mon.exe",
+        "pve-ha-crm-fence.exe", "pve-ha-crm-pengine.exe",
+        "pve-ha-crm-stonith.exe", "pve-ha-crm-stonith-ng.exe",
         "pve-ha-crm-stonith-ng-listener.exe"
 };
 
@@ -63,12 +58,11 @@ void Proxmox::CreateFakeProcesses() {
 }
 
 void Proxmox::CreateFakeRegistryKeys() {
-    for (const auto& regkey : REGKEYS) {
+    for (const auto& [regnamespace, regkey] : REGKEYS) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(regkey.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::CreateRegistryKey((const wchar_t *) regkey.c_str(), hkey);
-            Registry::WriteRegistryString((const wchar_t *) regkey.c_str(), L"PROXMOX SPOOFING", L"PROXMOX SPOOFING",
-                                          hkey);
+            Registry::WriteRegistryString((const wchar_t *) regkey.c_str(), L"PROXMOX SPOOFING", L"PROXMOX SPOOFING", hkey);
             LOGGER.Success(("Created registry key: " + regkey).c_str());
         } catch (RegistryException& e) {
             LOGGER.Error(e.what());
@@ -79,7 +73,7 @@ void Proxmox::CreateFakeRegistryKeys() {
 void Proxmox::CreateFakeNamedPipes() {
     for (const auto& pipe : NAMED_PIPES) {
         try {
-            WinUtils::SpawnNamedPipe(pipe);
+            WinUtils::SpawnNamedPipe(pipe, "proxmox.exe");
             LOGGER.Success(("Created named pipe: " + pipe).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
@@ -90,7 +84,8 @@ void Proxmox::CreateFakeNamedPipes() {
 void Proxmox::CreateFakeServices() {
     for (const auto& service : SERVICES) {
         try {
-            WinUtils::CreateFakeService(service);
+            std::thread service_t(WinUtils::CreateFakeService, service);
+            service_t.join();
             LOGGER.Success(("Created service: " + service).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
@@ -110,9 +105,9 @@ void Proxmox::DeleteFakeFiles() {
 }
 
 void Proxmox::DeleteFakeRegistryKeys() {
-    for (const auto& regkey : REGKEYS) {
+    for (const auto& [regnamespace, regkey] : REGKEYS) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(regkey.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::DeleteRegistryKey((const wchar_t *) regkey.c_str(), hkey);
             LOGGER.Success(("Deleted registry key: " + regkey).c_str());
         } catch (RegistryException& e) {

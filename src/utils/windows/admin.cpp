@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "winutils.hpp"
+#include "../common/json.hpp"
 
 bool Admin::isAdmin() {
     BOOL fIsRunAsAdmin = FALSE;
@@ -59,6 +60,14 @@ void Admin::createConfigFolder() {
     std::filesystem::create_directory(directory + "\\processes");
     std::filesystem::create_directory(directory + "\\services");
     std::filesystem::create_directory(directory + "\\namedpipes");
-    if (!std::filesystem::exists(directory + "\\config.ini"))
-        WinUtils::WriteFile(directory + "\\config.ini", "VMWare=false\nVirtualBox=false\nVSphere=false\nProxmox=false\nQemu=false\n");
+    if (!std::filesystem::exists(directory + "\\config.json")) {
+        nlohmann::json cfg = {
+                {"VMWare",     false},
+                {"VirtualBox", false},
+                {"VSphere",    false},
+                {"Proxmox",    false},
+                {"Qemu",       false}
+        };
+        WinUtils::WriteFile(directory + "\\config.json", cfg.dump());
+    }
 }

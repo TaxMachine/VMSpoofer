@@ -6,13 +6,15 @@
 
 #include <string>
 #include <vector>
-#include <windows.h>
+#include <map>
 #include <filesystem>
+#include <thread>
 
 #include "../../utils/registry/Registry.hpp"
 #include "../../utils/windows/winutils.hpp"
 #include "../../utils/common/logging.hpp"
 #include "../../utils/registry/RegistryException.hpp"
+#include "../../utils/common/parser.hpp"
 
 static std::vector<std::string> PROCESSES = {
         "qemu-ga.exe",
@@ -23,13 +25,13 @@ static std::vector<std::string> PROCESSES = {
         "prl_client_app.exe"
 };
 
-static std::vector<std::string> REGISTRY = {
-        R"(HKLM\HARDWARE\ACPI\DSDT\QEMU0001)",
-        R"(HKLM\HARDWARE\ACPI\FADT\QEMU0001)",
-        R"(HKLM\HARDWARE\ACPI\RSDT\QEMU0001)",
-        R"(HKCU\SOFTWARE\QEMU-GA)",
-        R"(HKCU\SOFTWARE\QEMU-GA)",
-        R"(HKCU\SOFTWARE\Red Hat\qemu-ga)"
+static std::map<std::string, std::string> REGISTRY = {
+        {"HKLM", R"(HARDWARE\ACPI\DSDT\QEMU0001)"},
+        {"HKLM", R"(HARDWARE\ACPI\FADT\QEMU0001)"},
+        {"HKLM", R"(HARDWARE\ACPI\RSDT\QEMU0001)"},
+        {"HKCU", R"(SOFTWARE\QEMU-GA)"},
+        {"HKCU", R"(SOFTWARE\QEMU-GA)"},
+        {"HKCU", R"(SOFTWARE\Red Hat\qemu-ga)"}
 };
 
 static std::vector<std::string> FILES = {
@@ -86,12 +88,12 @@ void Qemu::CreateFakeFiles() {
 }
 
 void Qemu::CreateFakeRegistryKeys() {
-    for (const auto& key : REGISTRY) {
+    for (const auto& [regnamespace, key] : REGISTRY) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
-            Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"QEMU FAKE REGISTRY KEY",
-                                          L"QEMU FAKE REGISTRY VALUE", hkey);
+            Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"QEMU FAKE REGISTRY KEY", L"QEMU FAKE REGISTRY VALUE", hkey);
+            LOGGER.Success(("Created registry key: " + key).c_str());
         } catch (RegistryException& e) {
             LOGGER.Error(e.what());
         }
@@ -102,6 +104,7 @@ void Qemu::CreateFakeProcesses() {
     for (const auto& process : PROCESSES) {
         try {
             WinUtils::SpawnFakeProcess(process);
+            LOGGER.Success(("Created process: " + process).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
         }
@@ -111,7 +114,9 @@ void Qemu::CreateFakeProcesses() {
 void Qemu::CreateFakeServices() {
     for (const auto& service : SERVICES) {
         try {
-            WinUtils::CreateFakeService(service);
+            std::thread service_t(WinUtils::CreateFakeService, service);
+            service_t.join();
+            LOGGER.Success(("Created service: " + service).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
         }
@@ -121,7 +126,7 @@ void Qemu::CreateFakeServices() {
 void Qemu::CreateFakeNamedPipes() {
     for (const auto& pipe : NAMED_PIPE) {
         try {
-            WinUtils::SpawnNamedPipe(pipe);
+            WinUtils::SpawnNamedPipe(pipe, Parser::SplitString(pipe, '\\').back());
             LOGGER.Success(("Created named pipe: " + pipe).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
@@ -141,9 +146,9 @@ void Qemu::DeleteFakeFiles() {
 }
 
 void Qemu::DeleteFakeRegistryKeys() {
-    for (const auto& key : REGISTRY) {
+    for (const auto& [regnamespace, key] : REGISTRY) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::DeleteRegistryKey((const wchar_t *) key.c_str(), hkey);
             LOGGER.Success(("Deleted registry key: " + key).c_str());
         } catch (RegistryException& e) {

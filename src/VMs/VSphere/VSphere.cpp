@@ -5,6 +5,8 @@
 #include "VSphere.hpp"
 
 #include <filesystem>
+#include <map>
+#include <thread>
 
 #include "../../utils/registry/Registry.hpp"
 #include "../../utils/registry/RegistryException.hpp"
@@ -12,12 +14,12 @@
 #include "../../utils/common/logging.hpp"
 #include "../../utils/common/parser.hpp"
 
-static std::vector<std::string> REGKEYS = {
-        R"(HKLM\SOFTWARE\VMware, Inc.\VMware Tools)",
-        R"(HKLM\SOFTWARE\VMware, Inc.\VMware Tools\Install)",
-        R"(HKLM\SOFTWARE\VMware, Inc.\VMware Tools\Install\Version)",
-        R"(HKLM\SOFTWARE\VMware, Inc.\VMware Tools\Running)",
-        R"(HKLM\SOFTWARE\VMware, Inc.\VMware Tools\Version)"
+static std::map<std::string, std::string> REGKEYS = {
+        {"HKLM", R"(SOFTWARE\VMware, Inc.\VMware Tools)"},
+        {"HKLM", R"(SOFTWARE\VMware, Inc.\VMware Tools\Install)"},
+        {"HKLM", R"(SOFTWARE\VMware, Inc.\VMware Tools\Install\Version)"},
+        {"HKLM", R"(SOFTWARE\VMware, Inc.\VMware Tools\Running)"},
+        {"HKLM", R"(SOFTWARE\VMware, Inc.\VMware Tools\Version)"}
 };
 
 static std::vector<std::string> FILES = {
@@ -37,29 +39,16 @@ static std::vector<std::string> PROCESSES = {
         "VMUSrvc.exe"
 };
 
-static std::vector<std::string> NAMED_PIPES = {
-        R"(\\.\pipe\VBoxMiniRdDN)",
-        R"(\\.\pipe\VBoxTrayIPC)"
-};
+static std::vector<std::string> NAMED_PIPES = {};
 
 static std::vector<std::string> SERVICES = {
-        "VMTools",
-        "VMware Physical Disk Helper Service",
-        "VMware Snapshot Provider",
-        "VMware Tools",
-        "VMware User Process",
-        "VMware VGAuth",
-        "VMwareHostd",
-        "VMwareHostdUser",
-        "VMwareNatService",
-        "VMwarePhysicalDisk",
-        "VMwareVMAFD",
-        "VMwareVCMSDS",
-        "VMwareVpxdVmdir",
-        "VMwareVsanHealthSvc",
-        "VMwareVsanVmkctlHost",
-        "VMwareVsanVmkctlVsanet",
-        "VMwareVsanvp"
+        "VMTools", "VMware Physical Disk Helper Service",
+        "VMware Snapshot Provider", "VMware Tools",
+        "VMware User Process", "VMware VGAuth",
+        "VMwareHostd", "VMwareHostdUser", "VMwareNatService",
+        "VMwarePhysicalDisk", "VMwareVMAFD", "VMwareVCMSDS",
+        "VMwareVpxdVmdir", "VMwareVsanHealthSvc", "VMwareVsanVmkctlHost",
+        "VMwareVsanVmkctlVsanet", "VMwareVsanvp"
 };
 
 static Logger LOGGER = Logger(typeid(VSphere).name());
@@ -76,12 +65,11 @@ void VSphere::CreateFakeFiles() {
 }
 
 void VSphere::CreateFakeRegistryKeys() {
-    for (const auto& key : REGKEYS) {
+    for (const auto& [regnamespace, key] : REGKEYS) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::CreateRegistryKey((const wchar_t *) key.c_str(), hkey);
-            Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"VSPHERE FAKE REGISTRY KEY",
-                                          L"VSPHERE FAKE REGISTRY VALUE", hkey);
+            Registry::WriteRegistryString((const wchar_t *) key.c_str(), L"VSPHERE FAKE REGISTRY KEY", L"VSPHERE FAKE REGISTRY VALUE", hkey);
             LOGGER.Success(("Created registry key: " + key).c_str());
         } catch (RegistryException& e) {
             LOGGER.Error(e.what());
@@ -103,7 +91,8 @@ void VSphere::CreateFakeProcesses() {
 void VSphere::CreateFakeServices() {
     for (const auto& service : SERVICES) {
         try {
-            WinUtils::CreateFakeService(service);
+            std::thread service_t(WinUtils::CreateFakeService, service);
+            service_t.join();
             LOGGER.Success(("Created service: " + service).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
@@ -114,7 +103,7 @@ void VSphere::CreateFakeServices() {
 void VSphere::CreateFakeNamedPipes() {
     for (const auto& pipe : NAMED_PIPES) {
         try {
-            WinUtils::SpawnNamedPipe(pipe);
+            WinUtils::SpawnNamedPipe(pipe, Parser::SplitString(pipe, '\\').back());
             LOGGER.Success(("Created named pipe: " + pipe).c_str());
         } catch (std::exception& e) {
             LOGGER.Error(e.what());
@@ -134,9 +123,9 @@ void VSphere::DeleteFakeFiles() {
 }
 
 void VSphere::DeleteFakeRegistryKeys() {
-    for (const auto& key : REGKEYS) {
+    for (const auto& [regnamespace, key] : REGKEYS) {
         try {
-            HKEY hkey = Registry::GetHKeyFromString(key.c_str());
+            HKEY hkey = Registry::GetHKeyFromString(regnamespace.c_str());
             Registry::DeleteRegistryKey((const wchar_t *) key.c_str(), hkey);
             LOGGER.Success(("Deleted registry key: " + key).c_str());
         } catch (RegistryException& e) {

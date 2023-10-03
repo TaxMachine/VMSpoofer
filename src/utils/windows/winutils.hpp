@@ -31,7 +31,7 @@ namespace WinUtils {
      * Create a fake named pipe with the specified name
      * @param name The name of the named pipe
      */
-    void SpawnNamedPipe(const std::string& name);
+    void SpawnNamedPipe(const std::string& filename, const std::string& name);
 
     /**
      * Kill a process with the specified name

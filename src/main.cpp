@@ -22,8 +22,11 @@ int main() {
 #ifdef USING_GUI
     GUI::CreateGUI();
 #else
-    CLI::CreateCLI();
-    CLI::Choices();
+    while (true) {
+
+        CLI::CreateCLI();
+        CLI::Choices();
+    }
 #endif
     return 0;
 }

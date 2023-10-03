@@ -19,7 +19,8 @@ void WinUtils::WriteFile(const std::string& path, const std::string& content) {
 int WinUtils::SpawnFakeProcess(const std::string& name) {
     std::string dir = getenv("USERPROFILE") + std::string(R"(\.hostvm\processes\)");
     std::string path = dir + name;
-    std::filesystem::copy_file(name, path, std::filesystem::copy_options::overwrite_existing);
+    if (!std::filesystem::exists(path))
+        std::filesystem::copy_file(".\\Decoy.exe", path, std::filesystem::copy_options::overwrite_existing);
 
     STARTUPINFOA startupInfo;
     PROCESS_INFORMATION processInformation;
@@ -27,14 +28,25 @@ int WinUtils::SpawnFakeProcess(const std::string& name) {
     ZeroMemory(&processInformation, sizeof(processInformation));
     startupInfo.cb = sizeof(startupInfo);
 
-    CreateProcessA(path.c_str(), nullptr, nullptr, nullptr, FALSE, 0x00000008, nullptr, nullptr, &startupInfo, &processInformation);
+    CreateProcessA(
+            path.c_str(),
+            nullptr,
+            nullptr,
+            nullptr,
+            FALSE,
+            DETACHED_PROCESS,
+            nullptr,
+            nullptr,
+            &startupInfo,
+            &processInformation);
     return static_cast<int>(processInformation.dwProcessId);
 }
 
 void WinUtils::CreateFakeService(const std::string& name) {
     std::string dir = getenv("USERPROFILE") + std::string(R"(\.hostvm\services\)");
     std::string path = dir + name;
-    std::filesystem::copy_file(name, path, std::filesystem::copy_options::overwrite_existing);
+    if (!std::filesystem::exists(path))
+        std::filesystem::copy_file(".\\Decoy.exe", path, std::filesystem::copy_options::overwrite_existing);
 
     SC_HANDLE schSCManager = OpenSCManager(nullptr, nullptr, SC_MANAGER_CREATE_SERVICE);
     SC_HANDLE schService = CreateServiceA(
@@ -58,10 +70,11 @@ void WinUtils::CreateFakeService(const std::string& name) {
     CloseServiceHandle(schSCManager);
 }
 
-void WinUtils::SpawnNamedPipe(const std::string &name) {
+void WinUtils::SpawnNamedPipe(const std::string& filename, const std::string &name) {
     std::string dir = getenv("USERPROFILE") + std::string(R"(\.hostvm\namedpipes\)");
-    std::string path = dir + name;
-    std::filesystem::copy_file(name, path, std::filesystem::copy_options::overwrite_existing);
+    std::string path = dir + filename;
+    if (!std::filesystem::exists(path))
+        std::filesystem::copy_file(".\\Decoy.exe", path, std::filesystem::copy_options::overwrite_existing);
 
     HANDLE hPipe = CreateNamedPipeA(
             path.c_str(),

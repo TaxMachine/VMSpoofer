@@ -6,6 +6,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include "json.hpp"
+
 std::vector<std::string> Parser::SplitString(const std::string& str, const std::string& delimiter) {
     std::vector<std::string> result;
     std::string::size_type pos = 0;
@@ -30,25 +32,17 @@ std::vector<std::string> Parser::SplitString(const std::string& str, const char&
     return result;
 }
 
-std::map<std::string, std::string> Parser::ParseKeyValue(const std::string& str, const std::string& delimiter) {
-    std::map<std::string, std::string> result;
-    std::vector<std::string> splitted = SplitString(str, delimiter);
-    for (const auto& i : splitted) {
-        std::vector<std::string> tmp = SplitString(i, '=');
-        result[tmp[0]] = tmp[1];
-    }
-    return result;
+nlohmann::json Parser::GetConfig() {
+    std::string path = getenv("USERPROFILE") + std::string(R"(\.hostvm\config.json)");
+    if (!std::filesystem::exists(path)) throw std::runtime_error("Config file does not exist!");
+    std::ifstream cfgfile(path);
+    nlohmann::json cfg = nlohmann::json::parse(cfgfile);
+    return cfg;
 }
 
-std::map<std::string, std::string> Parser::GetConfig() {
-    std::string path = getenv("USERPROFILE") + std::string(R"(\.hostvm\config.ini)");
-    if (!std::filesystem::exists(path)) throw std::runtime_error("Config file does not exist!");
-    std::ifstream file(path);
-    std::string line;
-    std::map<std::string, std::string> result;
-    while (std::getline(file, line)) {
-        std::map<std::string, std::string> tmp = ParseKeyValue(line, "=");
-        result[tmp.begin()->first] = tmp.begin()->second;
-    }
-    return result;
+void Parser::SetConfig(const nlohmann::json &config) {
+    std::string path = getenv("USERPROFILE") + std::string(R"(\.hostvm\config.json)");
+    std::ofstream cfgfile(path);
+    cfgfile << config.dump();
+    cfgfile.close();
 }

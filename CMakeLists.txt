@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.26)
 project(HostVMSpoofer)
 project(Decoy)
+project(VMDiscovery)
 
 set(CMAKE_CXX_STANDARD 23)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(CMAKE_CXX_FLAGS "-mwindows -Wl,--no-undefined -static-libgcc ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-mwindows -Wl,--no-undefined -static-libgcc -static ${CMAKE_CXX_FLAGS}")
 
 file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/**)
 
@@ -24,6 +25,8 @@ include_directories(${SOURCE_DIR}/imgui)
 add_executable(HostVMSpoofer ${SOURCES} ${IMGUI_SOURCES})
 
 add_executable(Decoy decoy/main.c)
+
+add_executable(VMDiscovery VMDiscovery/main.cpp)
 
 target_link_libraries(HostVMSpoofer PRIVATE
         opengl32

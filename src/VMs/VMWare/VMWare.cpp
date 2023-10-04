@@ -32,8 +32,7 @@ static std::vector<std::string> FILES = {
 
 static std::vector<std::string> PROCESSES = {
         "vmtoolsd.exe",
-        "VMSrvc.exe",
-        "VMUSrvc.exe"
+        "vm3dservice.exe"
 };
 
 static std::vector<std::string> NAMED_PIPES = {};
